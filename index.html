@@ -1,24 +1,505 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Web</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KatBot · V4</title>
+<style>
+  :root{
+    --bg: #05050a;
+    --bg-soft: #0d0d16;
+    --line: #22222f;
+    --pink: #ff6fae;
+    --pink-dim: #ff6fae55;
+    --violet: #9d7bff;
+    --text: #ecebf2;
+    --text-dim: #8a89a0;
+  }
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      background-color: #000000;
-    }
-  </style>
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html,body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height:100%;
+  }
+
+  body{
+    background-image:
+      radial-gradient(circle at 15% 0%, #ff6fae14, transparent 40%),
+      radial-gradient(circle at 85% 10%, #9d7bff14, transparent 40%);
+  }
+
+  header{
+    padding: 64px 24px 32px;
+    text-align:center;
+    position:relative;
+  }
+
+  .kicker{
+    font-size: 12px;
+    letter-spacing: .35em;
+    text-transform:uppercase;
+    color: var(--pink);
+    margin-bottom: 14px;
+  }
+
+  h1{
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 30%, var(--pink) 70%, var(--violet) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .sub{
+    margin-top: 12px;
+    color: var(--text-dim);
+    font-size: 15px;
+  }
+
+  .sub b{ color: var(--text); }
+
+  .search-wrap{
+    max-width: 480px;
+    margin: 32px auto 0;
+    padding: 0 24px;
+  }
+
+  #search{
+    width:100%;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 13px 22px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+
+  #search:focus{
+    border-color: var(--pink-dim);
+    box-shadow: 0 0 0 4px #ff6fae1a;
+  }
+
+  #search::placeholder{ color: var(--text-dim); }
+
+  nav{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content:center;
+    max-width: 900px;
+    margin: 28px auto 0;
+    padding: 0 24px;
+  }
+
+  nav button{
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    font-size: 12.5px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor:pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+
+  nav button:hover{ color: var(--text); border-color: #3a3a4d; }
+
+  nav button.active{
+    background: var(--pink);
+    border-color: var(--pink);
+    color: #1a0510;
+    font-weight:600;
+  }
+
+  main{
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 48px 24px 100px;
+    display: grid;
+    gap: 28px;
+  }
+
+  section.category{
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    overflow:hidden;
+  }
+
+  .cat-head{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .cat-emoji{
+    font-size: 20px;
+    width: 38px;
+    height: 38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: #ffffff08;
+    border-radius: 10px;
+    flex-shrink:0;
+  }
+
+  .cat-title{ font-size: 16px; font-weight:700; }
+  .cat-desc{ font-size: 12.5px; color: var(--text-dim); margin-top:2px; }
+
+  .cmd-list{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+
+  .cmd{
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+  }
+
+  .cmd-name{
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 13px;
+    color: var(--pink);
+    font-weight:600;
+  }
+
+  .cmd-desc{
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    line-height:1.4;
+  }
+
+  .cmd.hidden{ display:none; }
+  section.category.hidden{ display:none; }
+
+  footer{
+    text-align:center;
+    padding: 30px 24px 60px;
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing:.05em;
+  }
+
+  footer span{ color: var(--pink); }
+
+  #empty-state{
+    display:none;
+    text-align:center;
+    color: var(--text-dim);
+    padding: 60px 24px;
+    font-size: 14px;
+  }
+</style>
 </head>
 <body>
+
+<header>
+  <div class="kicker">All in one · WhatsApp Bot</div>
+  <h1>KatBot</h1>
+  <p class="sub">Diversión · IA · Juegos · <b>Versión 4</b></p>
+</header>
+
+<div class="search-wrap">
+  <input id="search" type="text" placeholder="Buscar un comando... ej: sticker, ruleta, profile">
+</div>
+
+<nav id="cat-nav"></nav>
+
+<main id="main"></main>
+<div id="empty-state">No se encontró ningún comando con ese nombre.</div>
+
+<footer>
+  ✦ Escribe <span>/menu</span> en el chat para volver a activar este menú ✦
+</footer>
+
+<script>
+const data = [
+  {
+    emoji: "🎵", title: "Multimedia", desc: "Descargas, stickers y contenido multimedia.",
+    cmds: [
+      ["/mp3 <nombre o URL>", "Descarga audio desde YouTube"],
+      ["/youtube <nombre o URL>", "Descarga videos desde YouTube"],
+      ["/sc <enlace>", "Descarga pistas de SoundCloud"],
+      ["/tiktok <enlace>", "Descarga videos de TikTok sin marcas adicionales"],
+      ["/playaudio", "Descarga audio de YouTube estilo música, más rápido"],
+      ["/twitter <enlace>", "Descarga videos de X (Twitter)"],
+      ["/ig <enlace>", "Descarga contenido multimedia de Instagram"],
+      ["/pinterest <enlace>", "Descarga imágenes y videos de Pinterest"],
+      ["/bud <búsqueda>", "Busca imágenes en Internet"],
+      ["/sticker", "Convierte imágenes o videos en stickers"],
+      ["/att <texto>", "Genera un sticker con texto personalizado"]
+    ]
+  },
+  {
+    emoji: "🤖", title: "Inteligencia Artificial", desc: "Conversaciones y herramientas impulsadas por IA.",
+    cmds: [
+      ["/bot <pregunta>", "Conversa con el asistente inteligente"],
+      ["/bot2 <mensaje>", "IA avanzada con soporte para imágenes y GIFs"]
+    ]
+  },
+  {
+    emoji: "🎮", title: "Juegos", desc: "Minijuegos y entretenimiento.",
+    cmds: [
+      ["/ttt @usuario", "Inicia una partida de Tres en Raya"],
+      ["/bj", "Juega una partida de Blackjack"],
+      ["/bola <pregunta>", "Obtén una respuesta aleatoria a tu pregunta"],
+      ["/afk", "Activa el modo ausente temporalmente"]
+    ]
+  },
+  {
+    emoji: "💰", title: "Economía", desc: "Sistema económico del bot para obtener y administrar monedas.",
+    cmds: [
+      ["/daily", "Reclama tu recompensa diaria"],
+      ["/balance", "Consulta tu saldo actual"],
+      ["/banco", "Gestiona tus ahorros"],
+      ["/donar", "Envía monedas a otro usuario"],
+      ["/laburo", "Trabaja para obtener recompensas"],
+      ["/crime", "Arriesga tus monedas por una ganancia mayor"],
+      ["/steal", "Intenta robar monedas a otro usuario"],
+      ["/mina", "Juega al buscaminas (niveles 3, 9, 18) y gana dinero"]
+    ]
+  },
+  {
+    emoji: "🎲", title: "Casino", desc: "Apuestas, suerte y jackpots.",
+    cmds: [
+      ["/flip <apuesta>", "Apuesta al resultado de una moneda"],
+      ["/ruleta <color> <apuesta>", "Participa en una ruleta de apuestas"],
+      ["/slots <modo> <apuesta>", "Juega en las tragamonedas"],
+      ["/dados alto <apuesta>", "Apuesta a un resultado alto"],
+      ["/dados bajo <apuesta>", "Apuesta a un resultado bajo"],
+      ["/dados exacto <número> <apuesta>", "Apuesta a un número específico"],
+      ["/dados extremo <número> <apuesta>", "Participa en el modo jackpot"],
+      ["/crash <apuesta>", "Retira tus ganancias antes del colapso"]
+    ]
+  },
+  {
+    emoji: "📈", title: "Inversiones", desc: "Mercado financiero y empresas.",
+    cmds: [
+      ["/empresa", "Consulta el mercado de inversiones"],
+      ["/empresa invertir <id> <monto>", "Invierte en una empresa disponible"],
+      ["/empresa ver", "Consulta tus inversiones activas"],
+      ["/empresa cobrar", "Cobra inversiones finalizadas"]
+    ]
+  },
+  {
+    emoji: "📊", title: "Dick Grower", desc: "Sistema competitivo de crecimiento.",
+    cmds: [
+      ["/crecer", "Obtén crecimiento diario"],
+      ["/top", "Consulta el ranking del grupo"],
+      ["/pvp @usuario <cm>", "Desafía a otro usuario"],
+      ["/aceptar", "Acepta un desafío pendiente"],
+      ["/rechazar", "Rechaza un desafío pendiente"],
+      ["/mystats", "Consulta tus estadísticas"],
+      ["/donarc @usuario <cm>", "Dona centímetros a otro usuario"]
+    ]
+  },
+  {
+    emoji: "🌸", title: "Waifus & Husbandos", desc: "Colecciona, comercia y compite.",
+    cmds: [
+      ["/rw", "Obtén un personaje aleatorio"],
+      ["/wa <anime>", "Busca personajes por anime"],
+      ["/km <nombre>", "Consulta información de un personaje"],
+      ["/mm", "Visualiza tu colección"],
+      ["/wish <nombre>", "Añade un personaje a tu lista de deseos"],
+      ["/unwish <nombre>", "Elimina un personaje de tu lista de deseos"],
+      ["/wl", "Consulta tu lista de deseos"],
+      ["/trade", "Propón un intercambio de personajes"],
+      ["/accept", "Acepta un intercambio pendiente"],
+      ["/deny", "Rechaza un intercambio pendiente"],
+      ["/divorce <nombre>", "Vende un personaje de tu colección"],
+      ["/waifuc", "Ofrece un personaje para su compra"],
+      ["/comprar", "Compra un personaje ofertado"],
+      ["/cancelarventa", "Cancela una venta activa"],
+      ["/topwaifus", "Consulta el ranking de coleccionistas"],
+      ["/washell", "Pon waifus a la venta"],
+      ["/washell list", "Ve las waifus a la venta"],
+      ["/wabuy", "Compra waifus que estén a la venta"],
+      ["/rwa", "Retira una waifu por error"]
+    ]
+  },
+  {
+    emoji: "💬", title: "Interacciones", desc: "Acciones y reacciones entre usuarios.",
+    cmds: [
+      ["/abrazo @usuario", "Abraza a otro usuario"],
+      ["/beso @usuario", "Besa a otro usuario"],
+      ["/caricia @usuario", "Acaricia a otro usuario"],
+      ["/cosquillas @usuario", "Haz cosquillas a otro usuario"],
+      ["/lick @usuario", "Lame a otro usuario"],
+      ["/nalgada @usuario", "Da una nalgada a otro usuario"],
+      ["/cachetada @usuario", "Da una cachetada a otro usuario"],
+      ["/golpe @usuario", "Golpea a otro usuario"],
+      ["/empujar @usuario", "Empuja a otro usuario"],
+      ["/kill @usuario", "Elimina ficticiamente a otro usuario"],
+      ["/dormir @usuario", "Descansa junto a otro usuario"],
+      ["/mimir", "Descansa en solitario"],
+      ["/papeada @usuario", "Supera a otro usuario"]
+    ]
+  },
+  {
+    emoji: "👤", title: "Perfil", desc: "Estadísticas y progreso personal.",
+    cmds: [
+      ["/profile", "Visualiza tu perfil"],
+      ["/serdesc", "Establece una descripción a tu perfil"],
+      ["/setbirth", "Establece tu fecha de nacimiento"],
+      ["/setgenre", "Establece tu género"],
+      ["/marry", "Cásate con alguien"],
+      ["/divorciar", "Divórciate"],
+      ["/marrytime", "Ve el tiempo casado con esa persona"],
+      ["/mystats", "Consulta tus estadísticas"],
+      ["/balance", "Consulta tu saldo"]
+    ]
+  },
+  {
+    emoji: "🏆", title: "Rankings", desc: "Clasificaciones y líderes.",
+    cmds: [
+      ["/top", "Ranking principal del sistema"],
+      ["/topwaifus", "Ranking de colecciones"],
+      ["/topdinero", "Ranking económico"],
+      ["/topmensajes", "Ranking de actividad"],
+      ["/topinactive", "Usuarios con menor actividad"]
+    ]
+  },
+  {
+    emoji: "🛡", title: "Administración", desc: "Herramientas para grupos.",
+    cmds: [
+      ["/everyone", "Menciona a todos los miembros"],
+      ["/antilink", "Gestiona la protección contra enlaces"],
+      ["/del", "Elimina un mensaje"],
+      ["/promote @usuario", "Asigna permisos de administrador"],
+      ["/demote @usuario", "Revoca permisos de administrador"],
+      ["/setwelcome", "Configura el mensaje de bienvenida"],
+      ["/setgoodbye", "Configura el mensaje de despedida"],
+      ["/warn @usuario motivo", "Da una advertencia a un usuario"],
+      ["/warns", "Consulta advertencias propias o de otro usuario"],
+      ["/delwarn @usuario", "Elimina todas las advertencias de un usuario"]
+    ]
+  },
+  {
+    emoji: "🚀", title: "NASA & Espacio", desc: "Exploración espacial y astronomía.",
+    cmds: [
+      ["/nasa", "Obtén una imagen aleatoria de la NASA"],
+      ["/nasa -hoy", "Consulta la imagen astronómica del día"],
+      ["/nasa -date YYYY-MM-DD", "Busca una imagen por fecha"]
+    ]
+  },
+  {
+    emoji: "🔞", title: "+18", desc: "Contenido exclusivo para adultos.",
+    cmds: [
+      ["/rule34", "Busca contenido de Rule 34"],
+      ["/ph", "Contenido hentai"],
+      ["/e621", "Contenido furry"],
+      ["/paheal", "Busca contenido en Paheal"],
+      ["/nsfw", "Obtén contenido para adultos"],
+      ["/fuck @usuario", "Interacción +18 con otro usuario"],
+      ["/cum @usuario", "Interacción +18 con otro usuario"],
+      ["/cumshot @usuario", "Interacción +18 con otro usuario"],
+      ["/yuri", "Contenido yuri"],
+      ["/69", "Interacción +18 con otro usuario"]
+    ]
+  },
+  {
+    emoji: "✦", title: "Info", desc: "Sobre el bot.",
+    cmds: [
+      ["/creador", "Consulta quién creó el bot"],
+      ["/menu", "Vuelve a mostrar este menú"]
+    ]
+  }
+];
+
+const nav = document.getElementById('cat-nav');
+const main = document.getElementById('main');
+const emptyState = document.getElementById('empty-state');
+
+const allBtn = document.createElement('button');
+allBtn.textContent = 'Todos';
+allBtn.className = 'active';
+allBtn.dataset.cat = 'all';
+nav.appendChild(allBtn);
+
+data.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.textContent = cat.emoji + ' ' + cat.title;
+  btn.dataset.cat = cat.title;
+  nav.appendChild(btn);
+});
+
+data.forEach(cat => {
+  const section = document.createElement('section');
+  section.className = 'category';
+  section.dataset.cat = cat.title;
+
+  section.innerHTML = `
+    <div class="cat-head">
+      <div class="cat-emoji">${cat.emoji}</div>
+      <div>
+        <div class="cat-title">${cat.title}</div>
+        <div class="cat-desc">${cat.desc}</div>
+      </div>
+    </div>
+    <div class="cmd-list">
+      ${cat.cmds.map(([name, desc]) => `
+        <div class="cmd" data-name="${name.toLowerCase()}" data-desc="${desc.toLowerCase()}">
+          <div class="cmd-name">${name}</div>
+          <div class="cmd-desc">${desc}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  main.appendChild(section);
+});
+
+nav.addEventListener('click', e => {
+  if(e.target.tagName !== 'BUTTON') return;
+  nav.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  const cat = e.target.dataset.cat;
+  document.querySelectorAll('section.category').forEach(sec => {
+    sec.classList.toggle('hidden', cat !== 'all' && sec.dataset.cat !== cat);
+  });
+  document.getElementById('search').value = '';
+  filterSearch('');
+});
+
+function filterSearch(q){
+  q = q.trim().toLowerCase();
+  let anyVisible = false;
+
+  document.querySelectorAll('section.category').forEach(sec => {
+    let sectionHasMatch = false;
+    sec.querySelectorAll('.cmd').forEach(cmd => {
+      const match = q === '' || cmd.dataset.name.includes(q) || cmd.dataset.desc.includes(q);
+      cmd.classList.toggle('hidden', !match);
+      if(match) sectionHasMatch = true;
+    });
+    if(q !== ''){
+      sec.classList.toggle('hidden', !sectionHasMatch);
+    }
+    if(sectionHasMatch) anyVisible = true;
+  });
+
+  emptyState.style.display = (q !== '' && !anyVisible) ? 'block' : 'none';
+}
+
+document.getElementById('search').addEventListener('input', e => {
+  nav.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  nav.querySelector('[data-cat="all"]').classList.add('active');
+  document.querySelectorAll('section.category').forEach(sec => sec.classList.remove('hidden'));
+  filterSearch(e.target.value);
+});
+</script>
 
 </body>
 </html>
